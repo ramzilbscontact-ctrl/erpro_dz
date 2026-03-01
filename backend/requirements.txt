@@ -7,28 +7,40 @@ python-decouple==3.8
 djangorestframework-simplejwt==5.5.1
 django-filter==25.2
 
-# Async / Realtime
-celery==5.6.2
-redis==7.2.1
-channels==4.3.2
+# ASGI server (WebSocket + HTTP)
 daphne==4.2.1
+channels==4.3.2
 channels-redis==4.3.0
 
+# WSGI fallback / static files
+gunicorn==21.2.0
+whitenoise==6.7.0
+
+# Async / Celery
+celery==5.6.2
+redis==7.2.1
+
+# Auth
+bcrypt==4.2.0
+pyotp==2.9.0
+
 # Integrations
-google-api-python-client
-google-auth-oauthlib
+google-api-python-client==2.149.0
+google-auth-oauthlib==1.2.1
 stripe==14.4.0
 requests==2.31.0
-pyotp==2.9.0
 
 # AI/ML
 anthropic==0.84.0
 scikit-learn==1.7.2
-# prophet  # install separately: pip install prophet
 
 # PDF
-weasyprint
+weasyprint==62.3
 
 # Utils
 pillow==10.2.0
 python-dotenv==1.0.0
+mongomock==4.3.0
+
+# Prod
+pymongo==4.10.1
