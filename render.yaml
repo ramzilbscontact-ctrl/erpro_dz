@@ -51,34 +51,6 @@ services:
       - key: FRONTEND_URL
         value: "https://erpro-dz-frontend.onrender.com"
 
-  # ── Celery Worker ─────────────────────────────────────────────────────────
-  - type: worker
-    name: erpro-dz-worker
-    runtime: python
-    rootDir: backend
-    plan: free
-    buildCommand: pip install -r requirements.txt
-    startCommand: celery -A config.celery worker --loglevel=info --concurrency=1
-    envVars:
-      - key: DJANGO_SETTINGS_MODULE
-        value: config.settings.production
-      - key: MONGO_URI
-        sync: false
-      - key: MONGO_DB
-        value: erp_radiance
-      - key: USE_MONGOMOCK
-        value: "False"
-      - key: REDIS_URL
-        fromService:
-          type: redis
-          name: erpro-dz-redis
-          property: connectionString
-      - key: SECRET_KEY
-        fromService:
-          type: web
-          name: erpro-dz-api
-          envVarKey: SECRET_KEY
-
   # ── Redis ─────────────────────────────────────────────────────────────────
   - type: redis
     name: erpro-dz-redis
