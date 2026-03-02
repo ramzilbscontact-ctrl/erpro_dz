@@ -84,3 +84,4 @@ services:
     name: erpro-dz-redis
     plan: free
     maxmemoryPolicy: allkeys-lru
+    ipAllowList: []
