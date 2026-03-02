@@ -12,6 +12,8 @@ services:
         source: /*
         destination: /index.html
     envVars:
+      - key: NODE_VERSION
+        value: "20.19.0"
       - key: VITE_API_URL
         value: "https://erpro-dz-api.onrender.com"
 
