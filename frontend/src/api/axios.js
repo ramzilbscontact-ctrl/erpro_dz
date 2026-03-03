@@ -4,6 +4,7 @@ import { useAuthStore } from '../store/authStore'
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL || 'https://erpro-dz-api.onrender.com',
   headers: { 'Content-Type': 'application/json' },
+  timeout: 20000, // 20s — laisse le temps au backend Render de sortir de veille
 })
 
 // Inject JWT token on every request

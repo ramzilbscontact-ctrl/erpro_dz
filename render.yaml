@@ -16,6 +16,8 @@ services:
         value: "20.19.0"
       - key: VITE_API_URL
         value: "https://erpro-dz-api.onrender.com"
+      - key: VITE_GOOGLE_CLIENT_ID
+        sync: false
 
   # ── Web API (Daphne ASGI — HTTP + WebSocket) ──────────────────────────────
   - type: web
@@ -32,7 +34,7 @@ services:
       - key: PYTHON_VERSION
         value: 3.10.0
       - key: SECRET_KEY
-        generateValue: true
+        sync: false
       - key: DEBUG
         value: "False"
       - key: USE_MONGOMOCK
@@ -50,6 +52,8 @@ services:
         value: "*"
       - key: FRONTEND_URL
         value: "https://erpro-dz-frontend.onrender.com"
+      - key: GOOGLE_CLIENT_ID
+        sync: false
 
   # ── Redis ─────────────────────────────────────────────────────────────────
   - type: redis

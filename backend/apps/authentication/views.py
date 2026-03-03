@@ -223,3 +223,82 @@ class TOTPDisableView(APIView):
             unset__totp_secret=1,
         )
         return Response({'detail': '2FA disabled successfully.'})
+
+
+class GoogleAuthView(APIView):
+    """
+    Authenticate (or register) a user via Google OAuth2 access token.
+
+    POST /api/auth/google/
+    Body: { "credential": "<google_access_token>" }
+
+    Flow:
+      1. Exchange the access token for user info via Google's userinfo endpoint.
+      2. If the user already exists in MongoDB → login.
+      3. If the user does not exist → create account automatically (role=viewer).
+      4. Return the same JWT pair as the standard login endpoint.
+    """
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        import requests as http
+
+        access_token = request.data.get('credential', '').strip()
+        if not access_token:
+            return Response(
+                {'detail': 'Google access token is required.'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # Call Google's UserInfo endpoint to verify the token and retrieve profile
+        try:
+            resp = http.get(
+                'https://www.googleapis.com/oauth2/v2/userinfo',
+                headers={'Authorization': f'Bearer {access_token}'},
+                timeout=10,
+            )
+        except Exception:
+            return Response(
+                {'detail': 'Could not reach Google servers. Try again.'},
+                status=status.HTTP_503_SERVICE_UNAVAILABLE,
+            )
+
+        if resp.status_code != 200:
+            return Response(
+                {'detail': 'Invalid or expired Google token.'},
+                status=status.HTTP_401_UNAUTHORIZED,
+            )
+
+        id_info = resp.json()
+        email = id_info.get('email', '').lower().strip()
+        if not email:
+            return Response(
+                {'detail': 'Google account has no verified email address.'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # Find or create the user in MongoDB
+        user = User.objects(email=email).first()
+        if not user:
+            import secrets
+            user = User(
+                email=email,
+                password=f'google:{secrets.token_hex(32)}',  # unusable password — Google-only account
+                first_name=id_info.get('given_name', ''),
+                last_name=id_info.get('family_name', ''),
+                role='viewer',
+                is_active=True,
+            )
+            user.save()
+
+        if not user.is_active:
+            return Response(
+                {'detail': 'Account is disabled. Contact an administrator.'},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        User.objects(id=user.id).update_one(set__last_login=datetime.utcnow())
+        user.reload()
+
+        tokens = get_tokens_for_user(user)
+        return Response({'user': UserSerializer(user).data, 'tokens': tokens})

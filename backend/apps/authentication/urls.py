@@ -10,4 +10,5 @@ urlpatterns = [
     path('change-password/', views.ChangePasswordView.as_view(), name='auth-change-password'),
     path('2fa/setup/', views.TOTPSetupView.as_view(), name='auth-2fa-setup'),
     path('2fa/disable/', views.TOTPDisableView.as_view(), name='auth-2fa-disable'),
+    path('google/', views.GoogleAuthView.as_view(), name='auth-google'),
 ]

@@ -12,10 +12,15 @@ RAILWAY_DOMAIN = config('RAILWAY_PUBLIC_DOMAIN', default='')
 CUSTOM_DOMAIN   = config('CUSTOM_DOMAIN', default='')
 RENDER_HOSTNAME = config('RENDER_EXTERNAL_HOSTNAME', default='')  # Render auto-injects this
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1']
-for _host in [RAILWAY_DOMAIN, CUSTOM_DOMAIN, RENDER_HOSTNAME]:
-    if _host:
-        ALLOWED_HOSTS.append(_host)
+# Support explicit ALLOWED_HOSTS env var (e.g. "*") — takes priority if set
+_allowed_hosts_env = config('ALLOWED_HOSTS', default='')
+if _allowed_hosts_env:
+    ALLOWED_HOSTS = [h.strip() for h in _allowed_hosts_env.split(',') if h.strip()]
+else:
+    ALLOWED_HOSTS = ['localhost', '127.0.0.1']
+    for _host in [RAILWAY_DOMAIN, CUSTOM_DOMAIN, RENDER_HOSTNAME]:
+        if _host:
+            ALLOWED_HOSTS.append(_host)
 
 # ── CORS ──────────────────────────────────────────────────────────────────────
 CORS_ALLOWED_ORIGINS = [o.strip() for o in config(
