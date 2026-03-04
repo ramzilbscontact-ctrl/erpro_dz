@@ -1,23 +1,5 @@
 services:
-  # ── Frontend (React Static Site) ──────────────────────────────────────────
-  - type: web
-    name: erpro-dz-frontend
-    runtime: static
-    rootDir: frontend
-    buildCommand: npm install && npm run build
-    staticPublishPath: dist
-    pullRequestPreviewsEnabled: false
-    routes:
-      - type: rewrite
-        source: /*
-        destination: /index.html
-    envVars:
-      - key: NODE_VERSION
-        value: "20.19.0"
-      - key: VITE_API_URL
-        value: "https://erpro-dz-api.onrender.com"
-      - key: VITE_GOOGLE_CLIENT_ID
-        sync: false
+  # Frontend → déployé sur Vercel (voir frontend/vercel.json)
 
   # ── Web API (Daphne ASGI — HTTP + WebSocket) ──────────────────────────────
   - type: web
@@ -51,7 +33,7 @@ services:
       - key: ALLOWED_HOSTS
         value: "*"
       - key: FRONTEND_URL
-        value: "https://erpro-dz-frontend.onrender.com"
+        sync: false  # À mettre manuellement = ton URL Vercel (ex: https://erpro-dz.vercel.app)
       - key: GOOGLE_CLIENT_ID
         sync: false
 
