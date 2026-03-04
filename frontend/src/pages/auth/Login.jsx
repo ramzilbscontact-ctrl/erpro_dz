@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useGoogleLogin } from '@react-oauth/google'
+import { signInWithPopup } from 'firebase/auth'
+import { auth, googleProvider } from '../../firebase'
 import { authAPI } from '../../api/auth'
 import { useAuthStore } from '../../store/authStore'
 
@@ -32,7 +33,6 @@ export default function Login() {
       await handleAuthSuccess(data.tokens)
     } catch (err) {
       if (!err.response) {
-        // Réseau indispo ou timeout (ex: Render en cold start)
         setError('Serveur indisponible — réessayez dans quelques secondes')
       } else {
         setError(
@@ -46,23 +46,30 @@ export default function Login() {
     }
   }
 
-  // ── Google OAuth ────────────────────────────────────────────
-  const googleLogin = useGoogleLogin({
-    flow: 'implicit',
-    onSuccess: async (tokenResponse) => {
-      setError('')
-      setGLoading(true)
-      try {
-        const { data } = await authAPI.googleLogin(tokenResponse.access_token)
-        await handleAuthSuccess(data.tokens)
-      } catch (err) {
+  // ── Google login via Firebase Auth ──────────────────────────
+  const handleGoogleLogin = async () => {
+    setError('')
+    setGLoading(true)
+    try {
+      const result = await signInWithPopup(auth, googleProvider)
+      // Récupère le Google OAuth access token depuis Firebase
+      const credential = result._tokenResponse
+      const accessToken = credential?.oauthAccessToken
+      if (!accessToken) throw new Error('No access token from Google')
+      const { data } = await authAPI.googleLogin(accessToken)
+      await handleAuthSuccess(data.tokens)
+    } catch (err) {
+      if (err.code === 'auth/popup-closed-by-user') {
+        setError('Connexion Google annulée')
+      } else if (err.code === 'auth/popup-blocked') {
+        setError('Popup bloquée — autorisez les popups pour ce site')
+      } else {
         setError(err.response?.data?.detail || 'Erreur Google OAuth')
-      } finally {
-        setGLoading(false)
       }
-    },
-    onError: () => setError('Connexion Google annulée ou impossible'),
-  })
+    } finally {
+      setGLoading(false)
+    }
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
@@ -132,7 +139,7 @@ export default function Login() {
           {/* Google button */}
           <button
             type="button"
-            onClick={() => googleLogin()}
+            onClick={handleGoogleLogin}
             disabled={loading || gLoading}
             className="w-full flex items-center justify-center gap-3 px-4 py-2.5 border border-gray-300 rounded-lg bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors disabled:opacity-50"
           >
